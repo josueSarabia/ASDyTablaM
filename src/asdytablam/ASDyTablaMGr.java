@@ -2,6 +2,7 @@ package asdytablam;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -17,6 +18,43 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
      */
     public ASDyTablaMGr() {
         initComponents();
+    }
+    
+    //TODO: QUITAR RECURSIVIDAD MAS DE 1 VEZ  ( ES UN PROBLEMA? )
+    //TODO: QUITAR FACTORIZACION MAS DE 1 VEZ
+    //TODO: PROBLEMA DIFERENCIAR E' DE NOTERMINAL E ANTES DE UN TERMINAL ' ( ES UN PROBLEMA? )
+
+    public void quitarRecursividad(ArrayList<String> gramatica) {
+        int tam = gramatica.size();
+        int i = 0;
+        while (i < tam) {
+            String p = gramatica.get(i);
+            String terminal = p.substring(0, 1);
+            String primerSimbGram = p.substring(3, 4);
+            if (terminal.equals(primerSimbGram)) {
+                String nuevoNoTerminal = terminal + "'";
+                String nuevaProd = p.substring(0, 3) + p.substring(4) + nuevoNoTerminal;
+                gramatica.set(i, nuevaProd);
+                //i = 0;
+                gramatica.add(nuevoNoTerminal + "->&");
+                for (int j = 0; j < tam; j++) {
+                    String gTemp = gramatica.get(j);
+                    String terminalTemp = gTemp.substring(0, 1);
+                    if (terminalTemp.equals(terminal) && !gTemp.contains(nuevoNoTerminal)) {
+                        gTemp = gTemp + nuevoNoTerminal;
+                        gramatica.set(j, gTemp);
+                    }
+                }
+
+            }
+
+            i++;
+        }
+
+    }
+
+    public void quitarFactorizacion() {
+
     }
 
     /**
@@ -70,6 +108,9 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
         // Si el usuario escogió abrir
         if (opcion == JFileChooser.APPROVE_OPTION) {
+
+            ArrayList<String> gramatica = new ArrayList<>();
+
             // Asignar archivo y nombre.
             File archivo = fc.getSelectedFile();
 
@@ -77,12 +118,12 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 // Mientras el archivo tenga otra línea.
                 while (lector.hasNextLine()) {
                     // Pedir la linea
-                    String linea = lector.nextLine();
+                    gramatica.add(lector.nextLine());
+                }
+                quitarRecursividad(gramatica);
 
-                    // Separar los datos
-                    //String[] datos = linea.split("->");
-                    // Convertir los datos
-                    // Agregamos datos a la tabla
+                for (int j = 0; j < 1; j++) {
+                    System.out.println("" + gramatica);
                 }
             } catch (FileNotFoundException ex) {
                 // TODO enviar mensaje al usuario
