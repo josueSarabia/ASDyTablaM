@@ -19,11 +19,11 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     public ASDyTablaMGr() {
         initComponents();
     }
-    
+
     //TODO: QUITAR RECURSIVIDAD MAS DE 1 VEZ  ( ES UN PROBLEMA? )
     //TODO: QUITAR FACTORIZACION MAS DE 1 VEZ
     //TODO: PROBLEMA DIFERENCIAR E' DE NOTERMINAL E ANTES DE UN TERMINAL ' ( ES UN PROBLEMA? )
-
+    
     public void quitarRecursividad(ArrayList<String> gramatica) {
         int tam = gramatica.size();
         int i = 0;
@@ -33,16 +33,16 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             String primerSimbGram = p.substring(3, 4);
             if (terminal.equals(primerSimbGram)) {
                 String nuevoNoTerminal = terminal + "'";
-                String nuevaProd = p.substring(0, 3) + p.substring(4) + nuevoNoTerminal;
+                String nuevaProd = nuevoNoTerminal + p.substring(1, 3) + p.substring(4) + nuevoNoTerminal;
                 gramatica.set(i, nuevaProd);
                 //i = 0;
                 gramatica.add(nuevoNoTerminal + "->&");
                 for (int j = 0; j < tam; j++) {
-                    String gTemp = gramatica.get(j);
-                    String terminalTemp = gTemp.substring(0, 1);
-                    if (terminalTemp.equals(terminal) && !gTemp.contains(nuevoNoTerminal)) {
-                        gTemp = gTemp + nuevoNoTerminal;
-                        gramatica.set(j, gTemp);
+                    String pTemp = gramatica.get(j);
+                    String terminalTemp = pTemp.substring(0, 1);
+                    if (terminalTemp.equals(terminal) && !pTemp.contains(nuevoNoTerminal)) {
+                        pTemp = pTemp + nuevoNoTerminal;
+                        gramatica.set(j, pTemp);
                     }
                 }
 
@@ -53,7 +53,44 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
     }
 
-    public void quitarFactorizacion() {
+    public void quitarFactorizacion(ArrayList<String> gramatica) {
+        int tam = gramatica.size();
+        int i = 0;
+        String subCuerpo = "";
+        int index = 1;
+        int contIguales = 0;
+        String posIguales = "";
+        while (i < tam) {
+            String prod = gramatica.get(i);
+            String cuerpo = prod.substring(3);
+            subCuerpo = cuerpo.substring(0,index);
+            int tamCuerpo = cuerpo.length();
+            int j = 0;
+            while (j<tam) {
+                String prodTemp = gramatica.get(j);
+                String cuerpoTemp = prodTemp.substring(3);
+                String subCuerpoTemp = cuerpoTemp.substring(0,index);
+                if (subCuerpoTemp.equals(subCuerpo)) {
+                    contIguales++;
+                    posIguales = posIguales + j + ",";
+                }
+            }
+            if (contIguales > 0) { // al menos hay un igual
+                
+                //que no me pase del tam del cuerpo y de cuerpoTemp
+                
+                //que si no corresponde ant cont con el nuevo factorizo con el ant
+                
+                String antPosIguales = posIguales;
+                index++;
+            }else{
+                
+                //avanzo con la busqueda a la siguiente produccion
+                index = 1;
+                i++;
+            }
+            
+        }
 
     }
 
