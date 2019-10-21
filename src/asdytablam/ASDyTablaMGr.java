@@ -54,44 +54,95 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     }
 
     public void quitarFactorizacion(ArrayList<String> gramatica) {
-        int tam = gramatica.size();
-        int i = 0;
-        String subCuerpo = "";
-        int index = 1;
-        int contIguales = 0;
-        String posIguales = "";
+        int tam = gramatica.size(), i = 0;
         while (i < tam) {
+            int sw=0, index = 1, contIguales = 0, antContIguales = 0;
+            String subCuerpo = "", antSubCuerpo = "", prodIguales = "", antProdIguales = "";
             String prod = gramatica.get(i);
-            String cuerpo = prod.substring(3);
-            subCuerpo = cuerpo.substring(0,index);
-            int tamCuerpo = cuerpo.length();
+            String cabezote = prod.split("->")[0];
+            String cuerpo = prod.split("->")[1];
             int j = 0;
-            while (j<tam) {
+            while (j < tam) {
                 String prodTemp = gramatica.get(j);
-                String cuerpoTemp = prodTemp.substring(3);
-                String subCuerpoTemp = cuerpoTemp.substring(0,index);
-                if (subCuerpoTemp.equals(subCuerpo)) {
-                    contIguales++;
-                    posIguales = posIguales + j + ",";
+                if (!prod.equals(prodTemp)) {
+                    String cabezoteTemp = prodTemp.split("->")[0];
+                    String cuerpoTemp = prodTemp.split("->")[1];
+                    if (index <= cuerpoTemp.length() && index <= cuerpo.length()) {
+                        subCuerpo = cuerpo.substring(0, index);
+                        String subCuerpoTemp = cuerpoTemp.substring(0, index);
+                        if (subCuerpoTemp.equals(subCuerpo) && cabezote.equals(cabezoteTemp)) {
+                            contIguales++;
+                            //el separador debe ser algo unico que no este en la prod
+                            prodIguales = prodIguales + prodTemp + "josue";
+                        }
+                    }
+                }
+                j++;
+                if (j == tam && (contIguales > 0 || antContIguales > 0)) { // al menos hay un igual
+                    if (antContIguales != 0 && antContIguales != contIguales) {
+                        //facotrizo
+                        String p = gramatica.remove(i);
+                        String[] pVector = p.split("->");
+                        String nuevaProd = pVector[0] + "->" + antSubCuerpo + pVector[0] + "'";
+                        gramatica.add(i, nuevaProd);
+                        String nuevasProds = pVector[0] + "'" + "->";
+                        String[] pvector1 = p.split(antSubCuerpo);
+                        if (pvector1.length < 2) {
+                            gramatica.add(nuevasProds + "&");
+                        } else {
+                            gramatica.add(nuevasProds + pvector1[1]);
+                        }
+                        //vector con los iguales
+                        String[] vProdIguales = antProdIguales.split("josue");
+                        for (int k = 0; k < vProdIguales.length; k++) {
+                            //buscar los iguales y retornar la posicion en el array
+                            int posProd = buscarPosicionProd(vProdIguales[k], gramatica);
+                            String igual = gramatica.remove(posProd);
+                            pvector1 = igual.split(antSubCuerpo);
+                            if (pvector1.length < 2) {
+                                gramatica.add(nuevasProds + "&");
+                            } else {
+                                gramatica.add(nuevasProds + pvector1[1]);
+                            }
+                        }
+                        sw = 1;
+                    } else {
+                        antContIguales = contIguales;
+                        antSubCuerpo = subCuerpo;
+                        antProdIguales = prodIguales;
+                        index++;
+                        contIguales = 0;
+                        prodIguales = "";
+                        j = 0;
+                    }
                 }
             }
-            if (contIguales > 0) { // al menos hay un igual
-                
-                //que no me pase del tam del cuerpo y de cuerpoTemp
-                
-                //que si no corresponde ant cont con el nuevo factorizo con el ant
-                
-                String antPosIguales = posIguales;
-                index++;
-            }else{
-                
+            if (sw == 1) {
+                //empiezo a analizar desde el prinicipio
+                i = 0;
+            } else {
                 //avanzo con la busqueda a la siguiente produccion
                 index = 1;
                 i++;
             }
-            
+
+        }
+        for (int j = 0; j < 1; j++) {
+            System.out.println("" + gramatica);
+        }
+    }
+
+    public static int buscarPosicionProd(String prodIgual, ArrayList<String> gramatica) {
+        int tam = gramatica.size();
+        int i = 0;
+        while (i < tam) {
+            if (gramatica.get(i).equals(prodIgual)) {
+                return i;
+            }
+            i++;
         }
 
+        return i;
     }
 
     /**
@@ -158,15 +209,11 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                     gramatica.add(lector.nextLine());
                 }
                 quitarRecursividad(gramatica);
-
-                for (int j = 0; j < 1; j++) {
-                    System.out.println("" + gramatica);
-                }
+                quitarFactorizacion(gramatica);
+                System.out.println("termine");
             } catch (FileNotFoundException ex) {
                 // TODO enviar mensaje al usuario
             } catch (NumberFormatException ex) {
-                // TODO enviar mensaje al usuario
-            } catch (Exception ex) {
                 // TODO enviar mensaje al usuario
             }
         }
