@@ -20,129 +20,131 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         initComponents();
     }
 
-    //TODO: QUITAR RECURSIVIDAD MAS DE 1 VEZ  ( ES UN PROBLEMA? )
-    //TODO: QUITAR FACTORIZACION MAS DE 1 VEZ
-    //TODO: PROBLEMA DIFERENCIAR E' DE NOTERMINAL E ANTES DE UN TERMINAL ' ( ES UN PROBLEMA? )
-    
+
+    int contLetra = 0;
+
+    // ver como hacer que no se repitan las letras
+    public String obtenerLetra(ArrayList<String> gramatica) {
+        boolean usada = true;
+        String abecedario = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        int i = 0, tam = gramatica.size();
+        while (usada) {
+            if (i < tam && gramatica.get(i).charAt(0) == abecedario.charAt(contLetra)) {
+                contLetra++;
+                i = 0;
+            }
+            if (i == tam) {
+                usada = false;
+            }
+            i++;
+        }
+        return abecedario.substring(contLetra, contLetra + 1);
+    }
+
     public void quitarRecursividad(ArrayList<String> gramatica) {
         int tam = gramatica.size();
         int i = 0;
         while (i < tam) {
             String p = gramatica.get(i);
-            String terminal = p.substring(0, 1);
+            String NoTerminal = p.substring(0, 1);
             String primerSimbGram = p.substring(3, 4);
-            if (terminal.equals(primerSimbGram)) {
-                String nuevoNoTerminal = terminal + "'";
+            if (NoTerminal.equals(primerSimbGram)) {
+                String nuevoNoTerminal = obtenerLetra(gramatica);//TODO: corregir recursividad 
                 String nuevaProd = nuevoNoTerminal + p.substring(1, 3) + p.substring(4) + nuevoNoTerminal;
                 gramatica.set(i, nuevaProd);
-                //i = 0;
                 gramatica.add(nuevoNoTerminal + "->&");
                 for (int j = 0; j < tam; j++) {
                     String pTemp = gramatica.get(j);
                     String terminalTemp = pTemp.substring(0, 1);
-                    if (terminalTemp.equals(terminal) && !pTemp.contains(nuevoNoTerminal)) {
+                    if (terminalTemp.equals(NoTerminal) && !pTemp.contains(nuevoNoTerminal)) {
                         pTemp = pTemp + nuevoNoTerminal;
                         gramatica.set(j, pTemp);
                     }
                 }
 
             }
-
             i++;
         }
 
     }
-
+    
+    //TODO: (opcional) verificar si funciona mas de una vez
     public void quitarFactorizacion(ArrayList<String> gramatica) {
-        int tam = gramatica.size(), i = 0;
-        while (i < tam) {
-            int sw=0, index = 1, contIguales = 0, antContIguales = 0;
-            String subCuerpo = "", antSubCuerpo = "", prodIguales = "", antProdIguales = "";
-            String prod = gramatica.get(i);
-            String cabezote = prod.split("->")[0];
-            String cuerpo = prod.split("->")[1];
-            int j = 0;
-            while (j < tam) {
-                String prodTemp = gramatica.get(j);
-                if (!prod.equals(prodTemp)) {
-                    String cabezoteTemp = prodTemp.split("->")[0];
-                    String cuerpoTemp = prodTemp.split("->")[1];
-                    if (index <= cuerpoTemp.length() && index <= cuerpo.length()) {
-                        subCuerpo = cuerpo.substring(0, index);
-                        String subCuerpoTemp = cuerpoTemp.substring(0, index);
-                        if (subCuerpoTemp.equals(subCuerpo) && cabezote.equals(cabezoteTemp)) {
-                            contIguales++;
-                            //el separador debe ser algo unico que no este en la prod
-                            prodIguales = prodIguales + prodTemp + "josue";
-                        }
-                    }
-                }
-                j++;
-                if (j == tam && (contIguales > 0 || antContIguales > 0)) { // al menos hay un igual
-                    if (antContIguales != 0 && antContIguales != contIguales) {
-                        //facotrizo
-                        String p = gramatica.remove(i);
-                        String[] pVector = p.split("->");
-                        String nuevaProd = pVector[0] + "->" + antSubCuerpo + pVector[0] + "'";
-                        gramatica.add(i, nuevaProd);
-                        String nuevasProds = pVector[0] + "'" + "->";
-                        String[] pvector1 = p.split(antSubCuerpo);
-                        if (pvector1.length < 2) {
-                            gramatica.add(nuevasProds + "&");
-                        } else {
-                            gramatica.add(nuevasProds + pvector1[1]);
-                        }
-                        //vector con los iguales
-                        String[] vProdIguales = antProdIguales.split("josue");
-                        for (int k = 0; k < vProdIguales.length; k++) {
-                            //buscar los iguales y retornar la posicion en el array
-                            int posProd = buscarPosicionProd(vProdIguales[k], gramatica);
-                            String igual = gramatica.remove(posProd);
-                            pvector1 = igual.split(antSubCuerpo);
-                            if (pvector1.length < 2) {
-                                gramatica.add(nuevasProds + "&");
-                            } else {
-                                gramatica.add(nuevasProds + pvector1[1]);
-                            }
-                        }
-                        sw = 1;
-                    } else {
-                        antContIguales = contIguales;
-                        antSubCuerpo = subCuerpo;
-                        antProdIguales = prodIguales;
-                        index++;
-                        contIguales = 0;
-                        prodIguales = "";
-                        j = 0;
-                    }
-                }
-            }
-            if (sw == 1) {
-                //empiezo a analizar desde el prinicipio
-                i = 0;
-            } else {
-                //avanzo con la busqueda a la siguiente produccion
-                index = 1;
-                i++;
-            }
-
-        }
-        for (int j = 0; j < 1; j++) {
-            System.out.println("" + gramatica);
-        }
-    }
-
-    public static int buscarPosicionProd(String prodIgual, ArrayList<String> gramatica) {
         int tam = gramatica.size();
-        int i = 0;
+        int sw = 0, sw1 = 0, i = 0;
         while (i < tam) {
-            if (gramatica.get(i).equals(prodIgual)) {
-                return i;
+            String prefijo = buscarFactorizacion(gramatica, i);
+            String cabezote = gramatica.get(i).split("->")[0];
+            char factorizar = prefijo.charAt(0);
+            prefijo = prefijo.substring(1);
+            if (factorizar == '1') {
+                i = 0;
+                String nuevoNoTerminal = obtenerLetra(gramatica);
+                while (sw == 0) {//TODO: cuando falle borrar el ciclo
+                    int j = 0;
+                    sw = 0;
+                    sw1 = 0;
+                    while (j < gramatica.size()) {
+                        String p = gramatica.get(j);
+                        if (p.contains(prefijo) && cabezote.equals(p.split("->")[0])) {
+                            p = gramatica.remove(j);
+                            String[] pVector = p.split("->" + prefijo);
+                            
+                            if (sw1 == 0) {
+                                String nuevaProd = pVector[0] + "->" + prefijo + nuevoNoTerminal ;
+                                gramatica.add(j, nuevaProd);
+                                sw1 = 1;
+                            }
+                            if (pVector.length == 1) {
+                                gramatica.add(nuevoNoTerminal + "->" + "&");
+                            } else {
+                                gramatica.add(nuevoNoTerminal + "->" + pVector[1]);
+                            }
+                            sw = 1;
+                        }
+                        j++;
+                    }
+                }
             }
             i++;
         }
+    }
 
-        return i;
+    public String buscarFactorizacion(ArrayList<String> gramatica, int i) {
+        int index = 1, contIguales = 0, antContIguales = 0;
+        int tam = gramatica.size();
+        String subCuerpo = "", antSubCuerpo = "";
+        String prod = gramatica.get(i);
+        String cabezote = prod.split("->")[0];
+        String cuerpo = prod.split("->")[1];
+        int j = 0;
+        while (j < tam) {
+            String prodTemp = gramatica.get(j);
+            if (!prod.equals(prodTemp)) {
+                String cabezoteTemp = prodTemp.split("->")[0];
+                String cuerpoTemp = prodTemp.split("->")[1];
+                if (index <= cuerpoTemp.length() && index <= cuerpo.length()) {
+                    subCuerpo = cuerpo.substring(0, index);
+                    String subCuerpoTemp = cuerpoTemp.substring(0, index);
+                    if (subCuerpoTemp.equals(subCuerpo) && cabezote.equals(cabezoteTemp)) {
+                        contIguales++;
+                    }
+                }
+            }
+            j++;
+            if (j == tam && (contIguales > 0 || antContIguales > 0)) {
+                if (antContIguales != 0 && antContIguales != contIguales) {
+                    return "1" + antSubCuerpo;
+                } else {
+                    antContIguales = contIguales;
+                    antSubCuerpo = subCuerpo;
+                    index++;
+                    contIguales = 0;
+                    j = 0;
+                }
+            }
+        }
+        return "0";
     }
 
     /**
@@ -209,8 +211,11 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                     gramatica.add(lector.nextLine());
                 }
                 quitarRecursividad(gramatica);
+                //System.out.println("recur");
+                //System.out.println("" + gramatica);
                 quitarFactorizacion(gramatica);
-                System.out.println("termine");
+                //System.out.println("fact");
+                System.out.println("" + gramatica);
             } catch (FileNotFoundException ex) {
                 // TODO enviar mensaje al usuario
             } catch (NumberFormatException ex) {
