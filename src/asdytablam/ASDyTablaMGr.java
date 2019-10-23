@@ -3,6 +3,7 @@ package asdytablam;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -13,9 +14,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class ASDyTablaMGr extends javax.swing.JFrame {
 
-    /**
-     * Creates new form ASDyTablaMGr
-     */
+    HashMap<String, ArrayList<String>> gramaticas = new HashMap<>();
+    HashMap<String, String> primeros = new HashMap<>();
+
     public ASDyTablaMGr() {
         initComponents();
     }
@@ -157,6 +158,38 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         return "0";
     }
 
+    public void CalculoPrimeros() {
+        for (String i : gramaticas.keySet()) {
+            String primero = "";
+            for (String j : gramaticas.get(i)) {
+                primero +=  primero(j);
+            }
+            primeros.put(i, primero);
+        }
+
+    }
+
+    public boolean EsNoTerminal(String producion) {
+
+        Boolean sw = (producion.substring(0, 1).matches("[A-Z]") || producion.substring(0, 1).equals("Ñ")) ? true : false;
+        return sw;
+    }
+
+    public String primero(String producion) {
+        if (!EsNoTerminal(producion.substring(0, 1))) {
+            return producion.substring(0,1);
+        } else {
+            String p = "";
+            for (String j : gramaticas.get(producion.substring(0, 1))) {
+
+                p += primero(j.substring(0, 1)) + ",";
+            }
+            return p.substring(0, p.length() - 1);
+
+        }
+
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -214,7 +247,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             // Asignar archivo y nombre.
             File archivo = fc.getSelectedFile();
 
-            try ( Scanner lector = new Scanner(archivo)) {
+            try (Scanner lector = new Scanner(archivo)) {
                 // Mientras el archivo tenga otra línea.
                 while (lector.hasNextLine()) {
                     // Pedir la linea
@@ -225,7 +258,30 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 //System.out.println("" + gramatica);
                 quitarFactorizacion(gramatica);
                 //System.out.println("fact");
+
+                String agrupados = "";
+                for (String i : gramatica) {
+                    String cabezote = i.substring(0, 1);
+                    ArrayList<String> produciones = new ArrayList<String>();
+                    if (!agrupados.contains(cabezote)) {
+
+                        for (String j : gramatica) {
+                            if (cabezote.equals(j.substring(0, 1))) {
+                                produciones.add(j.substring(3, j.length()));
+                            }
+                        }
+                        gramaticas.put(cabezote, produciones);
+                        agrupados += cabezote;
+                    }
+                }
+               
+               CalculoPrimeros();
                 System.out.println("" + gramatica);
+                System.out.println(gramaticas.toString());
+                System.out.println(primeros.toString());
+ 
+                
+
             } catch (FileNotFoundException ex) {
                 // TODO enviar mensaje al usuario
             } catch (NumberFormatException ex) {
