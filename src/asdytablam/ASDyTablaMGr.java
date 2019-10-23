@@ -51,7 +51,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             int agregarEpsilon = 0;
             while (j < tam) {
                 String pTemp = gramatica.get(j);
-                String noTerminalTemp = p.substring(0, 1);
+                String noTerminalTemp = pTemp.substring(0, 1);
                 if (noTerminal.equals(noTerminalTemp)) {
                     String primerSimbGram = pTemp.substring(3, 4);
                     if (noTerminalTemp.equals(primerSimbGram)) {
@@ -223,7 +223,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 quitarRecursividad(gramatica);
                 //System.out.println("recur");
                 //System.out.println("" + gramatica);
-                //quitarFactorizacion(gramatica);
+                quitarFactorizacion(gramatica);
                 //System.out.println("fact");
                 System.out.println("" + gramatica);
             } catch (FileNotFoundException ex) {
