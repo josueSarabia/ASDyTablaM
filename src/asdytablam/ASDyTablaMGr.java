@@ -20,7 +20,6 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         initComponents();
     }
 
-
     int contLetra = 0;
 
     // ver como hacer que no se repitan las letras
@@ -46,28 +45,39 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         int i = 0;
         while (i < tam) {
             String p = gramatica.get(i);
-            String NoTerminal = p.substring(0, 1);
-            String primerSimbGram = p.substring(3, 4);
-            if (NoTerminal.equals(primerSimbGram)) {
-                String nuevoNoTerminal = obtenerLetra(gramatica);//TODO: corregir recursividad 
-                String nuevaProd = nuevoNoTerminal + p.substring(1, 3) + p.substring(4) + nuevoNoTerminal;
-                gramatica.set(i, nuevaProd);
-                gramatica.add(nuevoNoTerminal + "->&");
-                for (int j = 0; j < tam; j++) {
-                    String pTemp = gramatica.get(j);
-                    String terminalTemp = pTemp.substring(0, 1);
-                    if (terminalTemp.equals(NoTerminal) && !pTemp.contains(nuevoNoTerminal)) {
-                        pTemp = pTemp + nuevoNoTerminal;
-                        gramatica.set(j, pTemp);
+            String noTerminal = p.substring(0, 1);
+            String nuevoNoTerminal = obtenerLetra(gramatica);
+            int j = 0;
+            int agregarEpsilon = 0;
+            while (j < tam) {
+                String pTemp = gramatica.get(j);
+                String noTerminalTemp = p.substring(0, 1);
+                if (noTerminal.equals(noTerminalTemp)) {
+                    String primerSimbGram = pTemp.substring(3, 4);
+                    if (noTerminalTemp.equals(primerSimbGram)) {
+                        String nuevaProd = nuevoNoTerminal + pTemp.substring(1, 3) + pTemp.substring(4) + nuevoNoTerminal;
+                        gramatica.set(j, nuevaProd);
+                        agregarEpsilon = 1;
                     }
                 }
-
+                j++;
+            }
+            if (agregarEpsilon == 1) {
+                gramatica.add(nuevoNoTerminal + "->&");
+                for (int k = 0; k < tam; k++) {
+                    String pTemp2 = gramatica.get(k);
+                    String terminalTemp = pTemp2.substring(0, 1);
+                    if (terminalTemp.equals(noTerminal) && !pTemp2.contains(nuevoNoTerminal)) {
+                        pTemp2 = pTemp2 + nuevoNoTerminal;
+                        gramatica.set(k, pTemp2);
+                    }
+                }
             }
             i++;
         }
 
     }
-    
+
     //TODO: (opcional) verificar si funciona mas de una vez
     public void quitarFactorizacion(ArrayList<String> gramatica) {
         int tam = gramatica.size();
@@ -89,9 +99,9 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                         if (p.contains(prefijo) && cabezote.equals(p.split("->")[0])) {
                             p = gramatica.remove(j);
                             String[] pVector = p.split("->" + prefijo);
-                            
+
                             if (sw1 == 0) {
-                                String nuevaProd = pVector[0] + "->" + prefijo + nuevoNoTerminal ;
+                                String nuevaProd = pVector[0] + "->" + prefijo + nuevoNoTerminal;
                                 gramatica.add(j, nuevaProd);
                                 sw1 = 1;
                             }
@@ -213,7 +223,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 quitarRecursividad(gramatica);
                 //System.out.println("recur");
                 //System.out.println("" + gramatica);
-                quitarFactorizacion(gramatica);
+                //quitarFactorizacion(gramatica);
                 //System.out.println("fact");
                 System.out.println("" + gramatica);
             } catch (FileNotFoundException ex) {
