@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
+import javax.swing.JTable;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -17,6 +19,8 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     HashMap<String, ArrayList<String>> gramaticas = new HashMap<>();
     HashMap<String, String> primeros = new HashMap<>();
     HashMap<String, String> s = new HashMap<>();
+    String Terminales="";
+ 
     
     String S;
 
@@ -168,6 +172,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         for (String i : gramaticas.keySet()) {
             String primero = "";
             for (String j : gramaticas.get(i)) {
+                Terminales+=j;
                 primero +=  primero(j);
             }
             primeros.put(i, primero);
@@ -190,7 +195,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
                 p += primero(j.substring(0, 1)) ;
             }
-            return p.substring(0, p.length() - 1);
+            return p ;
 
         }
 
@@ -207,6 +212,13 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
         fc = new javax.swing.JFileChooser();
         cargarArchivoButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable2 = new javax.swing.JTable();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -217,21 +229,79 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             }
         });
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel1.setText("Tabla M");
+
+        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Pila", "Entrada", "Salida"
+            }
+        ));
+        jScrollPane2.setViewportView(jTable2);
+
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Reconocer");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cargarArchivoButton)
-                .addContainerGap(355, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(cargarArchivoButton)
+                                .addGap(231, 231, 231)
+                                .addComponent(jLabel1)
+                                .addGap(212, 212, 212))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(103, 103, 103)
+                                .addComponent(jScrollPane2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(110, 110, 110)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 651, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cargarArchivoButton)
-                .addContainerGap(300, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cargarArchivoButton)
+                    .addComponent(jLabel1))
+                .addGap(27, 27, 27)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 418, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton1)))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         pack();
@@ -241,7 +311,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
       for (String i : gramaticas.keySet()) {
             String produccion = i;
     
- 
+          calculosiguiente(produccion);
         }
  
  
@@ -357,8 +427,10 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                         for (String j : gramatica) {
                             if (cabezote.equals(j.substring(0, 1))) {
                                 produciones.add(j.substring(3, j.length()));
+ 
                             }
                         }
+                        
                         gramaticas.put(cabezote, produciones);
                         s.put(cabezote, "");
                         agrupados += cabezote;
@@ -371,10 +443,45 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 
                 CalculoPrimeros();
                 calculars();
-               
+               Terminales=Terminales. replaceAll("[A-Z]", "").replaceAll("(.)(?=.*\\1)", "").replaceAll("&", "")+"$";
                 System.out.println("Primeros:"+primeros.toString());
                  System.out.println("Siguientes:"+s.toString());
- 
+                 System.out.println("Terminales"+Terminales);
+              
+                 DefaultTableModel m = new DefaultTableModel();
+                 for (int i = 0; i < Terminales.length()+1; i++) {
+                     if (i!=0) {
+                         m.addColumn(Terminales.charAt(i-1));
+                     }else{
+                     m.addColumn("No Terminales");
+                     }
+                     
+                }
+                 for (String i :gramaticas.keySet()) {
+                     String  []row= new String[Terminales.length()+1];
+                    row[0]=i;
+                     
+                         for (String k : gramaticas.get(i) ) {
+                             String primero=primero(k);
+                             for (int j = 1; j < Terminales.length()+1; j++) {
+                                 if (primero.contains(""+Terminales.charAt(j-1))) {
+                                     row[j]=i+"->"+k;
+                                 }
+                                 if (primero.contains("&") && s.get(i).contains(""+Terminales.charAt(j-1))) {
+                                     row[j]=i+"->"+k;
+                                 }
+                                 if (primero.contains("&") && s.get(i).contains("$")) {
+                                     row[Terminales.length()]=i+"->"+k;
+                                 }
+                             }
+                         }
+                         m.addRow(row);
+                      
+                    
+                }
+                 
+                 
+                jTable1.setModel(m);
                 
 
             } catch (FileNotFoundException ex) {
@@ -384,6 +491,10 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_cargarArchivoButtonActionPerformed
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    
+    }//GEN-LAST:event_jTextField1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -423,5 +534,12 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cargarArchivoButton;
     private javax.swing.JFileChooser fc;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTable jTable2;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }
