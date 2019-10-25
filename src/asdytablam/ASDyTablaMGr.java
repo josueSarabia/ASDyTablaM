@@ -16,9 +16,15 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
     HashMap<String, ArrayList<String>> gramaticas = new HashMap<>();
     HashMap<String, String> primeros = new HashMap<>();
+    HashMap<String, String> s = new HashMap<>();
+    
+    String S;
 
     public ASDyTablaMGr() {
         initComponents();
+        String v="+&";
+        System.out.println( v.contains("+("));
+                
     }
 
     int contLetra = 0;
@@ -182,7 +188,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             String p = "";
             for (String j : gramaticas.get(producion.substring(0, 1))) {
 
-                p += primero(j.substring(0, 1)) + ",";
+                p += primero(j.substring(0, 1)) ;
             }
             return p.substring(0, p.length() - 1);
 
@@ -230,7 +236,83 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+ public void calculars(){
+     
+      for (String i : gramaticas.keySet()) {
+            String produccion = i;
+    
+ 
+        }
+ 
+ 
+ 
+ 
+ 
+ }
+ public String  calculosiguiente(String produccion  ){
+  
+     if (!s .get(produccion).equals("")) {
+         return s.get(produccion);
+     }else{
+         for (String j : gramaticas.keySet()) {
+             romperciclo:
+              for (String k : gramaticas.get(j)) {
+                  
+                  if (k.contains(produccion) ) {
+                      if (produccion.equals(S) && !s.get(produccion).contains("$")) {
+                          s.put(produccion,s.get(produccion)+"$");
+                      }
+                 
+                      /* Verifico si la produccion string es mas grande que la posicion del terminal +1 
+                       caso  bbeta cuando beta es terminal  y si ya no fue agregado a s del terminal*/
+                      int posT=k.indexOf(produccion);
+                      int posST=k.indexOf(produccion)+1;
+                      /* evito bucle */
+                   
+                          /* segunda regla si es un terminal agrega el primero del terminal encontrado sino agrega el primero del no terminal */
+                          if ( posT<k.length()-1&& ( EsNoTerminal(""+k.charAt(posST)) && !s.get(produccion).contains( primeros.get(""+k.charAt(posST)))  )) {
+                          s.put(produccion,s.get(produccion)+primeros.get(""+k.charAt(posST)))   ;
+                      }else if( posT<k.length()-1 &&  ( !EsNoTerminal(""+k.charAt(posST)) && !s.get(produccion).contains(""+k.charAt(posST)) && !(""+k.charAt(posST)).equals("&"))){
+                     
+                        s.put(produccion,s.get(produccion)+k.charAt(posST))   ;
+                      }
+                           /* tercera regla si Beta contiene epsilon y no se conoce el  del cabezote*/
+                      if ((s.get(produccion).contains("&") ||posT==k.length()-1)   ) {
+                          
+                          s.put(produccion,s.get(produccion).replace("&", ""));
+                          if (j.charAt(0)==k.charAt(posT)) {
+                              continue romperciclo;
+                          }
+                            s.put(produccion,s.get(produccion)+calculosiguiente(j));
+                           
+                          
+                          
+                      } 
+                      
+                      
+                         
+                     
+                      
+                      
+                       
+                  }
+            }
+          }
+         s.put(produccion,s.get(produccion).replaceAll("(.)(?=.*\\1)", ""));
+         
+     return s.get(produccion);
+     }
+     
+     
+     }
+     
+ 
+     
+ 
+ 
+ 
+ 
+  
     private void cargarArchivoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargarArchivoButtonActionPerformed
         // Agregar filtro a FileChooser
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos .txt", "txt", "texto");
@@ -249,9 +331,16 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
             try (Scanner lector = new Scanner(archivo)) {
                 // Mientras el archivo tenga otra línea.
+                int sw=0;
                 while (lector.hasNextLine()) {
                     // Pedir la linea
-                    gramatica.add(lector.nextLine());
+                 // Pedir la linea
+                    String linea = lector.nextLine();
+                    gramatica.add(linea);
+                    if (sw == 0) {
+                        S = linea.split("->")[0];
+                        sw =1;
+                    }
                 }
                 quitarRecursividad(gramatica);
                 //System.out.println("recur");
@@ -271,14 +360,20 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                             }
                         }
                         gramaticas.put(cabezote, produciones);
+                        s.put(cabezote, "");
                         agrupados += cabezote;
                     }
                 }
                
-               CalculoPrimeros();
+               
                 System.out.println("" + gramatica);
                 System.out.println(gramaticas.toString());
-                System.out.println(primeros.toString());
+                
+                CalculoPrimeros();
+                calculars();
+               
+                System.out.println("Primeros:"+primeros.toString());
+                 System.out.println("Siguientes:"+s.toString());
  
                 
 
