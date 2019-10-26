@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
@@ -16,7 +18,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ASDyTablaMGr extends javax.swing.JFrame {
 
-    HashMap<String, ArrayList<String>> gramaticas = new HashMap<>();
+    Map<String, ArrayList<String>> gramaticas = new LinkedHashMap<>();
     HashMap<String, String> primeros = new HashMap<>();
     HashMap<String, String> s = new HashMap<>();
     String Terminales="";
@@ -419,14 +421,15 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 //System.out.println("fact");
 
                 String agrupados = "";
-                for (String i : gramatica) {
-                    String cabezote = i.substring(0, 1);
+                for (int i=0; i<gramatica.size();i++) {
+                    String cabezote = gramatica.get(i).substring(0, 1);
                     ArrayList<String> produciones = new ArrayList<String>();
                     if (!agrupados.contains(cabezote)) {
 
-                        for (String j : gramatica) {
-                            if (cabezote.equals(j.substring(0, 1))) {
-                                produciones.add(j.substring(3, j.length()));
+                        for (int j=i; j<gramatica.size();j++) {
+                            String producion=gramatica.get(j);
+                            if (cabezote.equals(producion.substring(0, 1))) {
+                                produciones.add(producion.substring(3, producion.length()));
  
                             }
                         }
@@ -442,9 +445,10 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 System.out.println(gramaticas.toString());
                 
                 CalculoPrimeros();
+                 System.out.println("Primeros:"+primeros.toString());
                 calculars();
                Terminales=Terminales. replaceAll("[A-Z]", "").replaceAll("(.)(?=.*\\1)", "").replaceAll("&", "")+"$";
-                System.out.println("Primeros:"+primeros.toString());
+               
                  System.out.println("Siguientes:"+s.toString());
                  System.out.println("Terminales"+Terminales);
               
