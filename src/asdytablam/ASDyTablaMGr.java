@@ -577,6 +577,14 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 System.out.println("Terminales" + Terminales);
 
                 DefaultTableModel m = new DefaultTableModel();
+                DefaultTableModel m2 = new DefaultTableModel();
+                m2.addColumn("gramatica");
+                m2.addColumn("primero");
+                m2.addColumn("siguiente");
+                for (String i :gramaticas.keySet()) {
+                    m2.addRow( new Object[]{i+"->",primeros.get(i),s.get(i)});
+                }
+                jTable2.setModel(m2);
                 for (int i = 0; i < Terminales.length() + 1; i++) {
                     if (i != 0) {
                         m.addColumn(Terminales.charAt(i - 1));
