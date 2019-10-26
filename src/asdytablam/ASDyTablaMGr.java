@@ -5,8 +5,11 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Scanner;
+import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -21,21 +24,18 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     Map<String, ArrayList<String>> gramaticas = new LinkedHashMap<>();
     HashMap<String, String> primeros = new HashMap<>();
     HashMap<String, String> s = new HashMap<>();
-    String Terminales="";
- 
-    
+    String Terminales = "";
     String S;
 
     public ASDyTablaMGr() {
         initComponents();
-        String v="+&";
-        System.out.println( v.contains("+("));
-                
+        String v = "+&";
+        System.out.println(v.contains("+("));
+
     }
 
     int contLetra = 0;
 
-    // ver como hacer que no se repitan las letras
     public String obtenerLetra(ArrayList<String> gramatica) {
         boolean usada = true;
         String abecedario = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -103,7 +103,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             if (factorizar == '1') {
                 i = 0;
                 String nuevoNoTerminal = obtenerLetra(gramatica);
-                while (sw == 0) {//TODO: cuando falle borrar el ciclo
+                while (sw == 0) {
                     int j = 0;
                     sw = 0;
                     sw1 = 0;
@@ -174,8 +174,8 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         for (String i : gramaticas.keySet()) {
             String primero = "";
             for (String j : gramaticas.get(i)) {
-                Terminales+=j;
-                primero +=  primero(j);
+                Terminales += j;
+                primero += primero(j);
             }
             primeros.put(i, primero);
         }
@@ -190,17 +190,158 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
     public String primero(String producion) {
         if (!EsNoTerminal(producion.substring(0, 1))) {
-            return producion.substring(0,1);
+            return producion.substring(0, 1);
         } else {
             String p = "";
             for (String j : gramaticas.get(producion.substring(0, 1))) {
 
-                p += primero(j.substring(0, 1)) ;
+                p += primero(j.substring(0, 1));
             }
-            return p ;
+            return p;
 
         }
 
+    }
+
+    public void calculars() {
+
+        for (String i : gramaticas.keySet()) {
+            String produccion = i;
+
+            calculosiguiente(produccion);
+        }
+
+    }
+
+    public String calculosiguiente(String produccion) {
+
+        if (!s.get(produccion).equals("")) {
+            return s.get(produccion);
+        } else {
+            for (String j : gramaticas.keySet()) {
+                romperciclo:
+                for (String k : gramaticas.get(j)) {
+
+                    if (produccion.equals(S) && !s.get(produccion).contains("$")) {
+                        s.put(produccion, s.get(produccion) + "$");
+                    }
+
+                    if (k.contains(produccion)) {
+
+
+                        /* Verifico si la produccion string es mas grande que la posicion del terminal +1 
+                       caso  bbeta cuando beta es terminal  y si ya no fue agregado a s del terminal*/
+                        int posT = k.indexOf(produccion);
+                        int posST = k.indexOf(produccion) + 1;
+                        /* evito bucle */
+
+ /* segunda regla si es un terminal agrega el primero del terminal encontrado sino agrega el primero del no terminal */
+                        if (posT < k.length() - 1 && (EsNoTerminal("" + k.charAt(posST)) && !s.get(produccion).contains(primeros.get("" + k.charAt(posST))))) {
+                            s.put(produccion, s.get(produccion) + primeros.get("" + k.charAt(posST)));
+                        } else if (posT < k.length() - 1 && (!EsNoTerminal("" + k.charAt(posST)) && !s.get(produccion).contains("" + k.charAt(posST)) && !("" + k.charAt(posST)).equals("&"))) {
+
+                            s.put(produccion, s.get(produccion) + k.charAt(posST));
+                        }
+                        /* tercera regla si Beta contiene epsilon y no se conoce el  del cabezote*/
+                        if ((s.get(produccion).contains("&") || posT == k.length() - 1)) {
+
+                            s.put(produccion, s.get(produccion).replace("&", ""));
+                            if (j.charAt(0) == k.charAt(posT)) {
+                                continue romperciclo;
+                            }
+                            s.put(produccion, s.get(produccion) + calculosiguiente(j));
+
+                        }
+
+                    }
+                }
+            }
+            s.put(produccion, s.get(produccion).replaceAll("(.)(?=.*\\1)", ""));
+
+            return s.get(produccion);
+        }
+
+    }
+
+    public void llenarTablaM(String simbInicio, String entrada) {
+        DefaultTableModel rmodel = new DefaultTableModel();
+        rmodel.addColumn("pila");
+        rmodel.addColumn("entrada");
+        rmodel.addColumn("salida");
+        String pila = "$" + simbInicio;
+        entrada = entrada + "$";
+        int fila = 0;
+        String salida;
+        boolean terminar = false;
+        while (!terminar) {
+            rmodel.addRow(new Object[]{pila, entrada, ""});
+            String cimaPila = pila.substring(pila.length() - 1);
+            String cimaEntrada = entrada.substring(0, 1);
+            if (pila.length() == 1 && entrada.length() == 1 && pila.equals("$") && entrada.equals("$")) {
+                salida = "aceptar";
+                terminar = true;
+            } else if (cimaPila.equals(cimaEntrada)) {
+                pila = pila.substring(0, pila.length() - 1);
+                entrada = entrada.substring(1);
+                salida = "";
+            } else {
+                salida = buscarEnTablaM(cimaPila, cimaEntrada);
+                if (salida == null || salida.equals("null")) {
+                    salida = "rechazada";
+                    terminar = true;
+                } else {
+
+                    if (salida.contains("&")) {
+                        pila = pila.substring(0, pila.length() - 1);
+                    } else {
+                        String salidaInv = invertirSalida(salida);
+                        pila = pila.substring(0, pila.length() - 1) + salidaInv;
+                    }
+
+                }
+            }
+            rmodel.setValueAt(salida, fila, 2);
+            fila++;
+        }
+        reconocerTable.setModel(rmodel);
+    }
+
+    public String buscarEnTablaM(String cimaPila, String cimaEntrada) {
+        DefaultTableModel modelM = (DefaultTableModel) jTable1.getModel();
+        int filas = modelM.getRowCount();
+        int columnas = modelM.getColumnCount();
+        int i = 0;
+        int j = 0;
+        boolean encontroFila = false;
+        while (i < filas && !encontroFila) {
+            if (modelM.getValueAt(i, 0).equals(cimaPila)) {
+                encontroFila = true;
+            }
+            i++;
+        }
+        boolean encontroColum = false;
+        while (j < columnas && !encontroColum) {
+            if (modelM.getColumnName(j).equals(cimaEntrada)) {
+                encontroColum = true;
+            }
+            j++;
+        }
+        if (modelM.getValueAt(i - 1, j - 1) == null || !encontroFila || !encontroColum) {
+            return "null";
+        }
+        
+        return modelM.getValueAt(i - 1, j - 1).toString();
+    }
+
+    public String invertirSalida(String salida) {
+
+        salida = salida.split("->")[1];
+        int tam = salida.length();
+        String inversa = "";
+        for (int i = tam; i > 0; i--) {
+            inversa = inversa + salida.substring(i - 1, i);
+        }
+        return inversa;
     }
 
     /**
@@ -218,9 +359,16 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
+        reconocerTable = new javax.swing.JTable();
+        reconocerTextField = new javax.swing.JTextField();
+        reconocerCadenaButton = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList<>();
+        jLabel2 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -244,7 +392,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel1.setText("Tabla M");
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        reconocerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -252,15 +400,41 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 "Pila", "Entrada", "Salida"
             }
         ));
-        jScrollPane2.setViewportView(jTable2);
+        jScrollPane2.setViewportView(reconocerTable);
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        reconocerTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                reconocerTextFieldActionPerformed(evt);
             }
         });
 
-        jButton1.setText("Reconocer");
+        reconocerCadenaButton.setText("Reconocer");
+        reconocerCadenaButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reconocerCadenaButtonActionPerformed(evt);
+            }
+        });
+
+        jScrollPane3.setViewportView(jList1);
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setText("Gramatica Sin Vicios");
+
+        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
+        jScrollPane4.setViewportView(jTable2);
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel3.setText("Primero y Siguiente");
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel4.setText("Cadena:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -269,122 +443,77 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(cargarArchivoButton)
-                                .addGap(231, 231, 231)
-                                .addComponent(jLabel1)
-                                .addGap(212, 212, 212))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(103, 103, 103)
-                                .addComponent(jScrollPane2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
+                        .addGap(62, 62, 62)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 528, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(110, 110, 110)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 651, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                        .addGap(245, 245, 245)
+                        .addComponent(jLabel2)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 484, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(25, 25, 25))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(219, 219, 219))))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cargarArchivoButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 10, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 651, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(279, 279, 279)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addGap(18, 18, 18)
+                        .addComponent(reconocerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(34, 34, 34)
+                        .addComponent(reconocerCadenaButton)
+                        .addGap(41, 41, 41))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cargarArchivoButton)
-                    .addComponent(jLabel1))
-                .addGap(27, 27, 27)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cargarArchivoButton)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 418, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButton1)))
-                .addContainerGap(20, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(27, 27, 27)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(reconocerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(reconocerCadenaButton)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
- public void calculars(){
-     
-      for (String i : gramaticas.keySet()) {
-            String produccion = i;
-    
-          calculosiguiente(produccion);
-        }
- 
- 
- 
- 
- 
- }
- public String  calculosiguiente(String produccion  ){
-  
-     if (!s .get(produccion).equals("")) {
-         return s.get(produccion);
-     }else{
-         for (String j : gramaticas.keySet()) {
-             romperciclo:
-              for (String k : gramaticas.get(j)) {
-                  
-                  if (k.contains(produccion) ) {
-                      if (produccion.equals(S) && !s.get(produccion).contains("$")) {
-                          s.put(produccion,s.get(produccion)+"$");
-                      }
-                 
-                      /* Verifico si la produccion string es mas grande que la posicion del terminal +1 
-                       caso  bbeta cuando beta es terminal  y si ya no fue agregado a s del terminal*/
-                      int posT=k.indexOf(produccion);
-                      int posST=k.indexOf(produccion)+1;
-                      /* evito bucle */
-                   
-                          /* segunda regla si es un terminal agrega el primero del terminal encontrado sino agrega el primero del no terminal */
-                          if ( posT<k.length()-1&& ( EsNoTerminal(""+k.charAt(posST)) && !s.get(produccion).contains( primeros.get(""+k.charAt(posST)))  )) {
-                          s.put(produccion,s.get(produccion)+primeros.get(""+k.charAt(posST)))   ;
-                      }else if( posT<k.length()-1 &&  ( !EsNoTerminal(""+k.charAt(posST)) && !s.get(produccion).contains(""+k.charAt(posST)) && !(""+k.charAt(posST)).equals("&"))){
-                     
-                        s.put(produccion,s.get(produccion)+k.charAt(posST))   ;
-                      }
-                           /* tercera regla si Beta contiene epsilon y no se conoce el  del cabezote*/
-                      if ((s.get(produccion).contains("&") ||posT==k.length()-1)   ) {
-                          
-                          s.put(produccion,s.get(produccion).replace("&", ""));
-                          if (j.charAt(0)==k.charAt(posT)) {
-                              continue romperciclo;
-                          }
-                            s.put(produccion,s.get(produccion)+calculosiguiente(j));
-                           
-                          
-                          
-                      } 
-                      
-                      
-                         
-                     
-                      
-                      
-                       
-                  }
-            }
-          }
-         s.put(produccion,s.get(produccion).replaceAll("(.)(?=.*\\1)", ""));
-         
-     return s.get(produccion);
-     }
-     
-     
-     }
-     
- 
-     
- 
- 
- 
- 
-  
+
+
     private void cargarArchivoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargarArchivoButtonActionPerformed
         // Agregar filtro a FileChooser
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos .txt", "txt", "texto");
@@ -397,108 +526,120 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         if (opcion == JFileChooser.APPROVE_OPTION) {
 
             ArrayList<String> gramatica = new ArrayList<>();
-
+            contLetra = 0;
             // Asignar archivo y nombre.
             File archivo = fc.getSelectedFile();
 
-            try (Scanner lector = new Scanner(archivo)) {
+            try ( Scanner lector = new Scanner(archivo)) {
                 // Mientras el archivo tenga otra línea.
-                int sw=0;
+                int sw = 0;
                 while (lector.hasNextLine()) {
                     // Pedir la linea
-                 // Pedir la linea
                     String linea = lector.nextLine();
                     gramatica.add(linea);
                     if (sw == 0) {
                         S = linea.split("->")[0];
-                        sw =1;
+                        sw = 1;
                     }
                 }
                 quitarRecursividad(gramatica);
-                //System.out.println("recur");
-                //System.out.println("" + gramatica);
                 quitarFactorizacion(gramatica);
-                //System.out.println("fact");
 
                 String agrupados = "";
-                for (int i=0; i<gramatica.size();i++) {
+                for (int i = 0; i < gramatica.size(); i++) {
                     String cabezote = gramatica.get(i).substring(0, 1);
                     ArrayList<String> produciones = new ArrayList<String>();
                     if (!agrupados.contains(cabezote)) {
 
-                        for (int j=i; j<gramatica.size();j++) {
-                            String producion=gramatica.get(j);
+                        for (int j = i; j < gramatica.size(); j++) {
+                            String producion = gramatica.get(j);
                             if (cabezote.equals(producion.substring(0, 1))) {
                                 produciones.add(producion.substring(3, producion.length()));
- 
+
                             }
                         }
-                        
+
                         gramaticas.put(cabezote, produciones);
                         s.put(cabezote, "");
                         agrupados += cabezote;
                     }
                 }
-               
-               
+
                 System.out.println("" + gramatica);
                 System.out.println(gramaticas.toString());
-                
+
                 CalculoPrimeros();
-                 System.out.println("Primeros:"+primeros.toString());
+                System.out.println("Primeros:" + primeros.toString());
                 calculars();
-               Terminales=Terminales. replaceAll("[A-Z]", "").replaceAll("(.)(?=.*\\1)", "").replaceAll("&", "")+"$";
-               
-                 System.out.println("Siguientes:"+s.toString());
-                 System.out.println("Terminales"+Terminales);
-              
-                 DefaultTableModel m = new DefaultTableModel();
-                 for (int i = 0; i < Terminales.length()+1; i++) {
-                     if (i!=0) {
-                         m.addColumn(Terminales.charAt(i-1));
-                     }else{
-                     m.addColumn("No Terminales");
-                     }
-                     
+                Terminales = Terminales.replaceAll("[A-Z]", "").replaceAll("(.)(?=.*\\1)", "").replaceAll("&", "") + "$";
+
+                System.out.println("Siguientes:" + s.toString());
+                System.out.println("Terminales" + Terminales);
+
+                DefaultTableModel m = new DefaultTableModel();
+                for (int i = 0; i < Terminales.length() + 1; i++) {
+                    if (i != 0) {
+                        m.addColumn(Terminales.charAt(i - 1));
+                    } else {
+                        m.addColumn("No Terminales");
+                    }
+
                 }
-                 for (String i :gramaticas.keySet()) {
-                     String  []row= new String[Terminales.length()+1];
-                    row[0]=i;
-                     
-                         for (String k : gramaticas.get(i) ) {
-                             String primero=primero(k);
-                             for (int j = 1; j < Terminales.length()+1; j++) {
-                                 if (primero.contains(""+Terminales.charAt(j-1))) {
-                                     row[j]=i+"->"+k;
-                                 }
-                                 if (primero.contains("&") && s.get(i).contains(""+Terminales.charAt(j-1))) {
-                                     row[j]=i+"->"+k;
-                                 }
-                                 if (primero.contains("&") && s.get(i).contains("$")) {
-                                     row[Terminales.length()]=i+"->"+k;
-                                 }
-                             }
-                         }
-                         m.addRow(row);
-                      
-                    
+                for (String i : gramaticas.keySet()) {
+                    String[] row = new String[Terminales.length() + 1];
+                    row[0] = i;
+
+                    for (String k : gramaticas.get(i)) {
+                        String primero = primero(k);
+                        for (int j = 1; j < Terminales.length() + 1; j++) {
+                            if (primero.contains("" + Terminales.charAt(j - 1))) {
+                                row[j] = i + "->" + k;
+                            }
+                            if (primero.contains("&") && s.get(i).contains("" + Terminales.charAt(j - 1))) {
+                                row[j] = i + "->" + k;
+                            }
+                            if (primero.contains("&") && s.get(i).contains("$")) {
+                                row[Terminales.length()] = i + "->" + k;
+                            }
+                        }
+                    }
+                    m.addRow(row);
                 }
-                 
-                 
+
                 jTable1.setModel(m);
-                
+                int tam  = gramatica.size();
+                int index = 0;
+                boolean encontro = false;
+                while(!encontro){
+                    if (gramatica.get(index).split("->")[0].equals(S)) {
+                        String p = gramatica.remove(index);
+                        gramatica.add(0, p);
+                        encontro=true;
+                    }
+                    index++;
+                }
+                DefaultListModel list = new DefaultListModel();
+                for (String produccion : gramatica) {
+                    list.addElement(produccion);
+                }
+                jList1.setModel(list);
 
             } catch (FileNotFoundException ex) {
-                // TODO enviar mensaje al usuario
+                System.out.println("error file not found");
             } catch (NumberFormatException ex) {
-                // TODO enviar mensaje al usuario
+                System.out.println("error numbe format exception");
             }
         }
     }//GEN-LAST:event_cargarArchivoButtonActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-    
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    private void reconocerTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reconocerTextFieldActionPerformed
+
+    }//GEN-LAST:event_reconocerTextFieldActionPerformed
+
+    private void reconocerCadenaButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reconocerCadenaButtonActionPerformed
+        String cad = reconocerTextField.getText();
+        llenarTablaM(S, cad);
+    }//GEN-LAST:event_reconocerCadenaButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -538,12 +679,19 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cargarArchivoButton;
     private javax.swing.JFileChooser fc;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JList<String> jList1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton reconocerCadenaButton;
+    private javax.swing.JTable reconocerTable;
+    private javax.swing.JTextField reconocerTextField;
     // End of variables declaration//GEN-END:variables
 }
