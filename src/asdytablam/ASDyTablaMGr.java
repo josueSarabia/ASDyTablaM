@@ -515,6 +515,21 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
 
     private void cargarArchivoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargarArchivoButtonActionPerformed
+        
+        DefaultListModel list = new DefaultListModel();
+        jList1.setModel(list);
+        DefaultTableModel m = new DefaultTableModel();
+        DefaultTableModel m2 = new DefaultTableModel();
+        DefaultTableModel rmodel = new DefaultTableModel();
+        jTable2.setModel(m2);
+        jTable1.setModel(m);
+        reconocerTable.setModel(rmodel);
+        gramaticas = new LinkedHashMap<>();
+        primeros = new HashMap<>();
+        s = new HashMap<>();
+        Terminales = "";
+        reconocerTextField.setText("");
+        
         // Agregar filtro a FileChooser
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos .txt", "txt", "texto");
         fc.setFileFilter(filter);
@@ -576,8 +591,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                 System.out.println("Siguientes:" + s.toString());
                 System.out.println("Terminales" + Terminales);
 
-                DefaultTableModel m = new DefaultTableModel();
-                DefaultTableModel m2 = new DefaultTableModel();
+                
                 m2.addColumn("gramatica");
                 m2.addColumn("primero");
                 m2.addColumn("siguiente");
@@ -626,7 +640,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                     }
                     index++;
                 }
-                DefaultListModel list = new DefaultListModel();
+                //DefaultListModel list = new DefaultListModel();
                 for (String produccion : gramatica) {
                     list.addElement(produccion);
                 }
