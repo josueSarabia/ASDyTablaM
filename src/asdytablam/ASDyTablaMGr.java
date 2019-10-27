@@ -91,7 +91,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
     }
 
-    //TODO: (opcional) verificar si funciona mas de una vez
+
     public void quitarFactorizacion(ArrayList<String> gramatica) {
         int tam = gramatica.size();
         int sw = 0, sw1 = 0, i = 0;
@@ -102,10 +102,10 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
             prefijo = prefijo.substring(1);
             if (factorizar == '1') {
                 i = 0;
+                sw = 0;
                 String nuevoNoTerminal = obtenerLetra(gramatica);
                 while (sw == 0) {
-                    int j = 0;
-                    sw = 0;
+                    int j = 0;                  
                     sw1 = 0;
                     while (j < gramatica.size()) {
                         String p = gramatica.get(j);
@@ -116,12 +116,15 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
                             if (sw1 == 0) {
                                 String nuevaProd = pVector[0] + "->" + prefijo + nuevoNoTerminal;
                                 gramatica.add(j, nuevaProd);
-                                sw1 = 1;
                             }
                             if (pVector.length == 1) {
                                 gramatica.add(nuevoNoTerminal + "->" + "&");
-                            } else {
+                                sw1 = 1;
+                            } else if(sw1 == 0){
                                 gramatica.add(nuevoNoTerminal + "->" + pVector[1]);
+                                sw1 = 1;
+                            }else if(sw1 == 1){
+                                gramatica.add(j,nuevoNoTerminal + "->" + pVector[1]);
                             }
                             sw = 1;
                         }
