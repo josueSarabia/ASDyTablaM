@@ -200,7 +200,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
            
             for (String j : gramaticas.get(producion.substring(0, 1))) {
 
-                p += primero(j.substring(0, 1));
+                p += primero(j);
             }
            
             
