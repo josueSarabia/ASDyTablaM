@@ -193,21 +193,25 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
     }
 
     public String primero(String producion) {
+        String p="";
         if (!EsNoTerminal(producion.substring(0, 1))) {
-            return producion.substring(0, 1);
+            p=producion.substring(0, 1);
         } else {
-            String p = "";
+           
             for (String j : gramaticas.get(producion.substring(0, 1))) {
 
                 p += primero(j.substring(0, 1));
             }
-            if (p.contains("&") & producion.length()>1) {
+           
+            
+
+        }
+         if (p.contains("&") & producion.length()>1) {
                 p=p.replace("&", "");
                 p+=primero(producion.substring(1));
                 
-            }   return p;
-
-        }
+            }   
+        return p;
 
     }
 
