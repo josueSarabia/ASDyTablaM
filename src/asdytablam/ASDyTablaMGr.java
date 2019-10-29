@@ -31,6 +31,7 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
         initComponents();
         String v = "+&";
         System.out.println(v.contains("+("));
+ 
 
     }
 
@@ -200,7 +201,11 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
                 p += primero(j.substring(0, 1));
             }
-            return p;
+            if (p.contains("&") & producion.length()>1) {
+                p=p.replace("&", "");
+                p+=primero(producion.substring(1));
+                
+            }   return p;
 
         }
 
@@ -663,6 +668,9 @@ public class ASDyTablaMGr extends javax.swing.JFrame {
 
     private void reconocerCadenaButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reconocerCadenaButtonActionPerformed
         String cad = reconocerTextField.getText();
+        if (cad.contains("&")) {
+            cad=cad.replace("&", "");
+        }
         llenarTablaM(S, cad);
     }//GEN-LAST:event_reconocerCadenaButtonActionPerformed
 
